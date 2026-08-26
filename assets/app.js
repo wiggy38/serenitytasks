@@ -2,13 +2,13 @@ const STATUTS = ["À faire", "En cours", "Terminé", "En attente", "Bloqué"];
 const PRIORITES = ["Haute", "Moyenne", "Basse"];
 
 const STATUT_STYLE = {
-  "À faire":    { bg: "#EEF0F4", fg: "#3D4351", col: "#F1F2F5" },
-  "En cours":   { bg: "#E7EEFB", fg: "#2452A8", col: "#EAF1FC" },
-  "En attente": { bg: "#FBF0DC", fg: "#9A6B00", col: "#FDF6E7" },
-  "Bloqué":     { bg: "#FBE7E4", fg: "#B23A24", col: "#FCEEEC" },
-  "Terminé":    { bg: "#E6F0EA", fg: "#0F6B4C", col: "#EAF4EE" },
+  "À faire":    { bg: "#2A2D33", fg: "#C7CBD3", col: "#1E2024" },
+  "En cours":   { bg: "#1B3A66", fg: "#8FB8F0", col: "#15233A" },
+  "En attente": { bg: "#4A3A12", fg: "#F0C766", col: "#332A14" },
+  "Bloqué":     { bg: "#4A231C", fg: "#FF8A75", col: "#331A15" },
+  "Terminé":    { bg: "#173D2C", fg: "#7CD9A8", col: "#12261C" },
 };
-const PRIORITE_COLOR = { Haute: "#B23A24", Moyenne: "#B2790E", Basse: "#3D7A5B" };
+const PRIORITE_COLOR = { Haute: "#FF6B52", Moyenne: "#F0C766", Basse: "#6FCB9F" };
 
 const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
@@ -137,16 +137,16 @@ function renderStats() {
 
   const cards = [
     ["Total sujets", total, "#000", "#FF7900"],
-    ["En cours", enCours, "#0F6B4C", "#E6F0EA"],
-    ["Bloqués", bloques, "#B23A24", "#FBE7E4"],
-    ["En attente", enAttente, "#9A6B00", "#FBF0DC"],
-    ["Terminés", termines, "#2452A8", "#E7EEFB"],
+    ["En cours", enCours, "#8FB8F0", "#1B3A66"],
+    ["Bloqués", bloques, "#FF8A75", "#4A231C"],
+    ["En attente", enAttente, "#F0C766", "#4A3A12"],
+    ["Terminés", termines, "#7CD9A8", "#173D2C"],
     ["En retard", retard, "#fff", "#B23A24"],
   ];
   $("#stats").innerHTML = cards.map(([label, val, fg, bg]) => `
-    <div class="stat-card" style="background:${bg};${bg === '#fff' ? 'border:1px solid #E4E2DB' : ''}">
+    <div class="stat-card" style="background:${bg}">
       <div class="val" style="color:${fg}">${val}</div>
-      <div class="lbl" style="color:${bg === '#B23A24' ? '#FBE7E4' : bg === '#FF7900' ? 'rgba(0,0,0,.65)' : '#6B7280'}">${label}</div>
+      <div class="lbl" style="color:${fg};opacity:.75">${label}</div>
     </div>`).join("");
 }
 
