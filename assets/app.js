@@ -52,6 +52,15 @@ function weekLabel(mondayISO) {
   return `Semaine du ${startTxt} au ${end.getDate()} ${MOIS_FR[end.getMonth()]} ${end.getFullYear()}`;
 }
 
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function diffDays(a, b) {
+  return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+}
+
 function shiftWeek(delta) {
   const d = new Date(currentWeek + "T00:00:00");
   d.setDate(d.getDate() + delta * 7);
@@ -210,6 +219,127 @@ function renderKanban(items) {
   return `<div class="kanban">${cols}</div>`;
 }
 
+// ---- Rendu roadmap ----
+const RM_LABEL_W = 220;
+const RM_DAY_W = 26;
+
+function taskRange(t) {
+  const start = t.date_debut || t.echeance;
+  const end = t.echeance || t.date_debut;
+  if (!start) return null;
+  return { start, end: end < start ? start : end };
+}
+
+function renderRoadmap(items) {
+  const ranged = items.map((t) => ({ t, range: taskRange(t) })).filter((x) => x.range);
+  if (ranged.length === 0) {
+    return `<div class="empty-state">Aucun sujet avec une date de début ou d'échéance à afficher sur la roadmap.</div>`;
+  }
+
+  let minStart = ranged[0].range.start;
+  let maxEnd = ranged[0].range.end;
+  ranged.forEach(({ range }) => {
+    if (range.start < minStart) minStart = range.start;
+    if (range.end > maxEnd) maxEnd = range.end;
+  });
+
+  let gridStart = addDays(mondayOfISO(minStart), -7);
+  let gridEnd = addDays(addDays(mondayOfISO(maxEnd), 6), 7);
+  const totalDays = diffDays(gridStart, gridEnd) + 1;
+  const timelineW = totalDays * RM_DAY_W;
+
+  // Groupes par projet
+  const groups = {};
+  ranged.forEach((x) => {
+    const key = x.t.projet || "Sans projet";
+    (groups[key] = groups[key] || []).push(x);
+  });
+  const groupNames = Object.keys(groups).sort();
+  groupNames.forEach((g) => groups[g].sort((a, b) => a.range.start.localeCompare(b.range.start)));
+
+  // Bandeaux de mois
+  const monthBands = [];
+  let cursor = gridStart;
+  while (cursor <= gridEnd) {
+    const monthStart = cursor;
+    const y = Number(cursor.slice(0, 4)), m = Number(cursor.slice(5, 7));
+    const nextMonthFirst = `${m === 12 ? y + 1 : y}-${String(m === 12 ? 1 : m + 1).padStart(2, "0")}-01`;
+    const bandEnd = nextMonthFirst <= gridEnd ? addDays(nextMonthFirst, -1) : gridEnd;
+    const left = diffDays(gridStart, monthStart) * RM_DAY_W;
+    const width = (diffDays(monthStart, bandEnd) + 1) * RM_DAY_W;
+    monthBands.push({ left, width, label: `${MOIS_FR[m - 1]} ${y}` });
+    cursor = addDays(bandEnd, 1);
+  }
+
+  // Repères hebdomadaires (lundis)
+  const weekTicks = [];
+  let wd = gridStart;
+  while (wd <= gridEnd) {
+    const d = new Date(wd + "T00:00:00");
+    weekTicks.push({ left: diffDays(gridStart, wd) * RM_DAY_W, label: `${d.getDate()}/${d.getMonth() + 1}` });
+    wd = addDays(wd, 7);
+  }
+
+  const todayOffset = diffDays(gridStart, todayISO()) * RM_DAY_W;
+  const showToday = todayISO() >= gridStart && todayISO() <= gridEnd;
+
+  // Lignes de grille verticales (une par semaine)
+  const gridLines = weekTicks.map((wt) => `<div class="rm-gridline" style="left:${wt.left}px"></div>`).join("");
+
+  const groupsHtml = groupNames.map((g) => {
+    const rows = groups[g].map(({ t, range }) => {
+      const st = STATUT_STYLE[t.statut];
+      const pc = PRIORITE_COLOR[t.priorite];
+      const left = diffDays(gridStart, range.start) * RM_DAY_W;
+      const width = Math.max((diffDays(range.start, range.end) + 1) * RM_DAY_W - 4, 16);
+      return `
+        <div class="rm-row">
+          <div class="rm-row-label" title="${escapeHtml(t.sujet)}">
+            <div class="titre">${escapeHtml(t.sujet)}</div>
+            <div class="resp">${escapeHtml(t.responsable) || "Non assigné"}</div>
+          </div>
+          <div class="rm-row-track" style="width:${timelineW}px">
+            <div class="rm-bar" style="left:${left}px;width:${width}px;background:${st.bg};color:${st.fg};border-left:3px solid ${pc}"
+                 onclick="openEdit(${t.id})" title="${escapeHtml(t.sujet)} — ${t.statut}">
+              <span class="rm-bar-label">${escapeHtml(t.sujet)}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+    return `
+      <div class="rm-group">
+        <div class="rm-group-title">${escapeHtml(g)}</div>
+        ${rows}
+      </div>`;
+  }).join("");
+
+  return `
+    <div class="roadmap">
+      <div class="rm-scroll">
+        <div class="rm-inner" style="width:${RM_LABEL_W + timelineW}px">
+          <div class="rm-header">
+            <div class="rm-corner"></div>
+            <div class="rm-header-timeline" style="width:${timelineW}px">
+              <div class="rm-months">
+                ${monthBands.map((b) => `<div class="rm-month" style="left:${b.left}px;width:${b.width}px">${b.label}</div>`).join("")}
+              </div>
+              <div class="rm-weeks">
+                ${weekTicks.map((w) => `<div class="rm-week-tick" style="left:${w.left}px">${w.label}</div>`).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="rm-body">
+            <div class="rm-gridlines" style="left:${RM_LABEL_W}px">
+              ${gridLines}
+              ${showToday ? `<div class="rm-today" style="left:${todayOffset}px"><span>Aujourd'hui</span></div>` : ""}
+            </div>
+            ${groupsHtml}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 // ---- Drag & drop kanban ----
 let dragId = null;
 
@@ -257,7 +387,7 @@ function render() {
     if (view === "kanban") $("#week-label").textContent = weekLabel(currentWeek);
   }
   const items = filteredTaches();
-  $("#content").innerHTML = view === "liste" ? renderListe(items) : renderKanban(items);
+  $("#content").innerHTML = view === "liste" ? renderListe(items) : view === "roadmap" ? renderRoadmap(items) : renderKanban(items);
   attachDnD();
 
   // datalist projets
@@ -367,8 +497,15 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#f-statut").addEventListener("change", render);
   $("#f-priorite").addEventListener("change", render);
 
-  $("#view-liste").addEventListener("click", () => { view = "liste"; $("#view-liste").classList.add("active"); $("#view-kanban").classList.remove("active"); render(); });
-  $("#view-kanban").addEventListener("click", () => { view = "kanban"; $("#view-kanban").classList.add("active"); $("#view-liste").classList.remove("active"); render(); });
+  const viewBtns = { liste: $("#view-liste"), kanban: $("#view-kanban"), roadmap: $("#view-roadmap") };
+  function setView(v) {
+    view = v;
+    Object.entries(viewBtns).forEach(([k, btn]) => btn.classList.toggle("active", k === v));
+    render();
+  }
+  $("#view-liste").addEventListener("click", () => setView("liste"));
+  $("#view-kanban").addEventListener("click", () => setView("kanban"));
+  $("#view-roadmap").addEventListener("click", () => setView("roadmap"));
 
   loadTaches();
 });
