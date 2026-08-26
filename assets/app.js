@@ -136,7 +136,7 @@ function renderStats() {
   const retard = taches.filter(t => t.statut !== "Terminé" && t.echeance && joursRestants(t.echeance) < 0).length;
 
   const cards = [
-    ["Total sujets", total, "#fff", "#FF7900"],
+    ["Total sujets", total, "#000", "#FF7900"],
     ["En cours", enCours, "#0F6B4C", "#E6F0EA"],
     ["Bloqués", bloques, "#B23A24", "#FBE7E4"],
     ["En attente", enAttente, "#9A6B00", "#FBF0DC"],
@@ -146,7 +146,7 @@ function renderStats() {
   $("#stats").innerHTML = cards.map(([label, val, fg, bg]) => `
     <div class="stat-card" style="background:${bg};${bg === '#fff' ? 'border:1px solid #E4E2DB' : ''}">
       <div class="val" style="color:${fg}">${val}</div>
-      <div class="lbl" style="color:${bg === '#B23A24' ? '#FBE7E4' : bg === '#FF7900' ? '#FFE3C2' : '#6B7280'}">${label}</div>
+      <div class="lbl" style="color:${bg === '#B23A24' ? '#FBE7E4' : bg === '#FF7900' ? 'rgba(0,0,0,.65)' : '#6B7280'}">${label}</div>
     </div>`).join("");
 }
 
