@@ -10,15 +10,56 @@ const STATUT_STYLE = {
 };
 const PRIORITE_COLOR = { Haute: "#B23A24", Moyenne: "#B2790E", Basse: "#3D7A5B" };
 
+const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
 let taches = [];
 let view = "kanban";
 let editingId = null;
+let currentWeek = null; // initialisé au chargement, lundi ISO de la semaine affichée en Kanban
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 // ---- Utilitaires dates ----
 function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+function mondayOfISO(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const day = d.getDay(); // 0=dim..6=sam
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+function currentMondayISO() { return mondayOfISO(todayISO()); }
+
+// Semaine Kanban "effective" : une tâche non terminée dont la semaine est
+// passée apparaît dans la semaine en cours (affichage uniquement, date_debut
+// n'est jamais modifiée).
+function effectiveWeek(t) {
+  const base = mondayOfISO(t.date_debut || todayISO());
+  if (t.statut !== "Terminé" && base < currentMondayISO()) {
+    return currentMondayISO();
+  }
+  return base;
+}
+
+function weekLabel(mondayISO) {
+  const start = new Date(mondayISO + "T00:00:00");
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const sameMonth = start.getMonth() === end.getMonth();
+  const startTxt = sameMonth ? `${start.getDate()}` : `${start.getDate()} ${MOIS_FR[start.getMonth()]}`;
+  return `Semaine du ${startTxt} au ${end.getDate()} ${MOIS_FR[end.getMonth()]} ${end.getFullYear()}`;
+}
+
+function shiftWeek(delta) {
+  const d = new Date(currentWeek + "T00:00:00");
+  d.setDate(d.getDate() + delta * 7);
+  currentWeek = d.toISOString().slice(0, 10);
+  render();
+}
+function goToCurrentWeek() { currentWeek = currentMondayISO(); render(); }
+
 function joursRestants(echeance) {
   if (!echeance) return null;
   const d = new Date(echeance + "T00:00:00");
@@ -71,7 +112,8 @@ function filteredTaches() {
     const matchQ = !q || [t.sujet, t.projet, t.responsable, t.commentaires].join(" ").toLowerCase().includes(q);
     const matchS = fs === "Tous" || t.statut === fs;
     const matchP = fp === "Toutes" || t.priorite === fp;
-    return matchQ && matchS && matchP;
+    const matchW = view !== "kanban" || effectiveWeek(t) === currentWeek;
+    return matchQ && matchS && matchP && matchW;
   });
 }
 
@@ -209,6 +251,11 @@ function attachDnD() {
 
 function render() {
   renderStats();
+  const weekNav = $("#week-nav");
+  if (weekNav) {
+    weekNav.classList.toggle("hidden", view !== "kanban");
+    if (view === "kanban") $("#week-label").textContent = weekLabel(currentWeek);
+  }
   const items = filteredTaches();
   $("#content").innerHTML = view === "liste" ? renderListe(items) : renderKanban(items);
   attachDnD();
@@ -301,8 +348,14 @@ async function submitForm(e) {
 
 // ---- Init ----
 document.addEventListener("DOMContentLoaded", () => {
+  currentWeek = currentMondayISO();
+
   STATUTS.forEach(s => $("#f-statut").insertAdjacentHTML("beforeend", `<option>${s}</option>`));
   PRIORITES.forEach(p => $("#f-priorite").insertAdjacentHTML("beforeend", `<option>${p}</option>`));
+
+  $("#week-prev").addEventListener("click", () => shiftWeek(-1));
+  $("#week-next").addEventListener("click", () => shiftWeek(1));
+  $("#week-today").addEventListener("click", goToCurrentWeek);
 
   $("#btn-new").addEventListener("click", openNew);
   $("#modal-close").addEventListener("click", closeModal);

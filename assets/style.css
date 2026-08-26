@@ -42,6 +42,17 @@ main.wrap, .wrap { padding-top: 24px; padding-bottom: 60px; }
 .toggle { border: none; border-radius: 7px; padding: 7px 14px; background: transparent; color: #6B7280; font-weight: 600; font-size: 13px; cursor: pointer; }
 .toggle.active { background: #fff; color: #14213D; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 
+/* Navigation semaine (Kanban) */
+.week-nav { display: flex; align-items: center; gap: 10px; margin: -6px 0 16px; padding: 8px 4px; }
+.week-nav.hidden { display: none; }
+.week-label { font-weight: 700; font-size: 14px; color: #14213D; min-width: 260px; text-align: center; }
+.week-nav .icon-btn {
+  border: 1px solid #E4E2DB; background: #fff; border-radius: 8px;
+  width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: #3D4351;
+}
+.week-nav .icon-btn:hover { background: #EAE8E1; }
+.week-today { margin-left: auto; padding: 6px 12px; font-size: 12.5px; }
+
 /* Table */
 .table-wrap { background: #fff; border-radius: 12px; border: 1px solid #E4E2DB; overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }

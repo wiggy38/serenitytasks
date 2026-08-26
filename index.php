@@ -40,6 +40,13 @@ header('Pragma: no-cache');
     </div>
   </section>
 
+  <section id="week-nav" class="week-nav">
+    <button id="week-prev" class="icon-btn" aria-label="Semaine précédente">‹</button>
+    <span id="week-label" class="week-label"></span>
+    <button id="week-next" class="icon-btn" aria-label="Semaine suivante">›</button>
+    <button id="week-today" class="btn-secondary week-today">Aujourd'hui</button>
+  </section>
+
   <section id="content"></section>
 
 </main>
