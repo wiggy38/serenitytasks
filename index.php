@@ -31,8 +31,8 @@
     <select id="f-statut"><option>Tous</option></select>
     <select id="f-priorite"><option>Toutes</option></select>
     <div class="view-toggle">
-      <button id="view-liste" class="toggle active">Liste</button>
-      <button id="view-kanban" class="toggle">Kanban</button>
+      <button id="view-liste" class="toggle">Liste</button>
+      <button id="view-kanban" class="toggle active">Kanban</button>
     </div>
   </section>
 
@@ -81,8 +81,8 @@
       <div class="grid-3">
         <label>Statut
           <select id="f-statut-form">
-            <option>À faire</option><option>En cours</option><option>En attente</option>
-            <option>Bloqué</option><option>Terminé</option>
+            <option>À faire</option><option>En cours</option><option>Terminé</option>
+            <option>En attente</option><option>Bloqué</option>
           </select>
         </label>
         <label>Date début

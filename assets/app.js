@@ -1,4 +1,4 @@
-const STATUTS = ["À faire", "En cours", "En attente", "Bloqué", "Terminé"];
+const STATUTS = ["À faire", "En cours", "Terminé", "En attente", "Bloqué"];
 const PRIORITES = ["Haute", "Moyenne", "Basse"];
 
 const STATUT_STYLE = {
@@ -11,7 +11,7 @@ const STATUT_STYLE = {
 const PRIORITE_COLOR = { Haute: "#B23A24", Moyenne: "#B2790E", Basse: "#3D7A5B" };
 
 let taches = [];
-let view = "liste";
+let view = "kanban";
 let editingId = null;
 
 const $ = (sel) => document.querySelector(sel);
