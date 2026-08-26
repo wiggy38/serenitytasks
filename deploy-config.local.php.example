@@ -1,0 +1,10 @@
+<?php
+// Copie ce fichier en deploy-config.local.php (jamais suivi par git, à créer
+// une seule fois directement sur le serveur via le gestionnaire de fichiers cPanel).
+
+// Doit être identique au secret renseigné dans GitHub > Settings > Webhooks.
+define('DEPLOY_SECRET', 'CHANGE_MOI');
+
+// Chemin absolu du dépôt sur le serveur (visible dans cPanel > Git Version
+// Control > Repository Path).
+define('DEPLOY_REPO_PATH', '/home/c2525575c/public_html/serenitytasks');
