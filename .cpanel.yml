@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/echo "Depot deploye directement dans le dossier servi, rien a copier."
