@@ -35,9 +35,9 @@ header('Pragma: no-cache');
     <select id="f-statut"><option>Tous</option></select>
     <select id="f-priorite"><option>Toutes</option></select>
     <div class="view-toggle">
-      <button id="view-liste" class="toggle">Liste</button>
       <button id="view-kanban" class="toggle active">Kanban</button>
       <button id="view-roadmap" class="toggle">Roadmap</button>
+      <button id="view-liste" class="toggle">Liste</button>
     </div>
   </section>
 
