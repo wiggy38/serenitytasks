@@ -10,10 +10,10 @@ body {
 ::placeholder { color: #9CA0AC; }
 
 /* Header */
-.topbar { background: #14213D; color: #fff; padding: 22px 0; }
+.topbar { background: #14213D; color: #fff; padding: 11px 0; }
 .topbar-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.eyebrow { font-size: 12px; letter-spacing: .14em; color: #8FA3D9; font-weight: 600; text-transform: uppercase; }
-.topbar h1 { margin: 2px 0 0; font-size: 24px; font-weight: 700; }
+.eyebrow { font-size: 10px; letter-spacing: .14em; color: #8FA3D9; font-weight: 600; text-transform: uppercase; }
+.topbar h1 { margin: 1px 0 0; font-size: 18px; font-weight: 700; }
 
 .btn-primary {
   display: flex; align-items: center; gap: 8px;
