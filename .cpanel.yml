@@ -1,4 +1,9 @@
 ---
+# Le depot est clone directement dans le dossier servi par le site
+# (DEPLOYPATH == chemin du depot). Il n'y a donc rien a copier : les
+# fichiers sont deja au bon endroit une fois le pull effectue. On garde
+# neanmoins DEPLOYPATH pour documentation/coherence avec le format cPanel.
 deployment:
   tasks:
-    - /bin/echo "Depot deploye directement dans le dossier servi, rien a copier."
+    - export DEPLOYPATH=/home/c2525575c/public_html/serenitytasks/
+    - /bin/echo "Depot deploye directement dans $DEPLOYPATH, rien a copier."
