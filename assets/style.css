@@ -10,14 +10,14 @@ body {
 ::placeholder { color: #9CA0AC; }
 
 /* Header */
-.topbar { background: #14213D; color: #fff; padding: 11px 0; }
+.topbar { background: #FF7900; color: #fff; padding: 11px 0; }
 .topbar-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 10px; }
-.eyebrow { font-size: 10px; letter-spacing: .14em; color: #8FA3D9; font-weight: 600; text-transform: uppercase; }
-.topbar h1 { margin: 1px 0 0; font-size: 18px; font-weight: 700; }
+.eyebrow { font-size: 10px; letter-spacing: .14em; color: #FFE3C2; font-weight: 600; text-transform: uppercase; }
+.topbar h1 { margin: 1px 0 0; font-size: 18px; font-weight: 700; color: #fff; }
 
 .btn-primary {
   display: flex; align-items: center; gap: 8px;
-  background: #E3A008; color: #14213D; border: none; border-radius: 10px;
+  background: #fff; color: #FF7900; border: none; border-radius: 10px;
   padding: 10px 16px; font-weight: 700; cursor: pointer; font-size: 14px;
 }
 .btn-primary.full { flex: 1; background: #14213D; color: #fff; border-radius: 9px; padding: 11px 0; justify-content: center; }
