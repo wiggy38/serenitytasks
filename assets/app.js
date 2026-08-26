@@ -152,6 +152,7 @@ function renderKanban(items) {
         <div class="kcard" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
           <div class="titre">${escapeHtml(t.sujet)}</div>
           <div class="resp">${escapeHtml(t.responsable) || "Non assigné"}</div>
+          ${t.projet ? `<div class="kcard-projet">${escapeHtml(t.projet)}</div>` : ""}
           ${a.html}
         </div>`;
     }).join("");
