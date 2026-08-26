@@ -65,10 +65,12 @@ td { padding: 12px 14px; border-bottom: 1px solid #F0EFEA; vertical-align: top; 
 .kcol-head .name { font-weight: 700; font-size: 13px; }
 .kcol-head .count { border-radius: 20px; font-size: 11.5px; font-weight: 700; padding: 2px 8px; }
 .kcol-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
-.kcard { background: #fff; border-radius: 9px; padding: 10px; border: 1px solid #E4E2DB; cursor: pointer; }
+.kcard { background: #fff; border-radius: 9px; padding: 10px; border: 1px solid #E4E2DB; cursor: grab; transition: box-shadow .15s, opacity .15s; }
 .kcard .titre { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 .kcard .resp { font-size: 11.5px; color: #9CA0AC; margin-bottom: 6px; }
-.kcard select { margin-top: 8px; width: 100%; font-size: 11.5px; padding: 4px 6px; border-radius: 6px; border: 1px solid #E4E2DB; }
+.kcard.dragging { opacity: .4; }
+.kcol-body { transition: background .15s; border-radius: 8px; }
+.kcol.drag-over .kcol-body { background: #EAF0FB; outline: 2px dashed #2452A8; outline-offset: -4px; }
 
 /* Alerte badge */
 .alerte-retard { color: #B23A24; font-weight: 700; font-size: 12.5px; }

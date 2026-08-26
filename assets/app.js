@@ -36,13 +36,23 @@ function alerteInfo(statut, echeance) {
 
 // ---- API ----
 async function api(method, body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+  const opts = {
+    method,
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch("api.php", opts);
+  const url = method === "GET" ? `api.php?_=${Date.now()}` : "api.php";
+  const res = await fetch(url, opts);
   return res.json();
 }
 async function apiDelete(id) {
-  const res = await fetch("api.php", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+  const res = await fetch(`api.php?_=${Date.now()}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+    cache: "no-store",
+  });
   return res.json();
 }
 
@@ -139,17 +149,14 @@ function renderKanban(items) {
       const pc = PRIORITE_COLOR[t.priorite];
       const a = alerteInfo(t.statut, t.echeance);
       return `
-        <div class="kcard" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
+        <div class="kcard" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
           <div class="titre">${escapeHtml(t.sujet)}</div>
           <div class="resp">${escapeHtml(t.responsable) || "Non assigné"}</div>
           ${a.html}
-          <select onclick="event.stopPropagation()" onchange="moveStatut(${t.id}, this.value)">
-            ${STATUTS.map(s => `<option ${s === statut ? "selected" : ""}>${s}</option>`).join("")}
-          </select>
         </div>`;
     }).join("");
     return `
-      <div class="kcol">
+      <div class="kcol" data-statut="${statut}">
         <div class="kcol-head">
           <span class="name" style="color:${st.fg}">${statut}</span>
           <span class="count" style="background:${st.bg};color:${st.fg}">${colItems.length}</span>
@@ -160,10 +167,50 @@ function renderKanban(items) {
   return `<div class="kanban">${cols}</div>`;
 }
 
+// ---- Drag & drop kanban ----
+let dragId = null;
+
+function attachDnD() {
+  if (view !== "kanban") return;
+
+  $$(".kcard").forEach((card) => {
+    card.addEventListener("dragstart", (e) => {
+      dragId = Number(card.dataset.id);
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+    });
+  });
+
+  $$(".kcol").forEach((col) => {
+    col.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      col.classList.add("drag-over");
+    });
+    col.addEventListener("dragleave", () => {
+      col.classList.remove("drag-over");
+    });
+    col.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      col.classList.remove("drag-over");
+      const statut = col.dataset.statut;
+      if (dragId != null) {
+        const t = taches.find((x) => x.id === dragId);
+        dragId = null;
+        if (t && t.statut !== statut) await moveStatut(t.id, statut);
+      }
+    });
+  });
+}
+
 function render() {
   renderStats();
   const items = filteredTaches();
   $("#content").innerHTML = view === "liste" ? renderListe(items) : renderKanban(items);
+  attachDnD();
 
   // datalist projets
   const projets = [...new Set(taches.map(t => t.projet).filter(Boolean))].sort();
