@@ -2,11 +2,11 @@ const STATUTS = ["À faire", "En cours", "Terminé", "En attente", "Bloqué"];
 const PRIORITES = ["Haute", "Moyenne", "Basse"];
 
 const STATUT_STYLE = {
-  "À faire":    { bg: "#EEF0F4", fg: "#3D4351" },
-  "En cours":   { bg: "#E6F0EA", fg: "#0F6B4C" },
-  "En attente": { bg: "#FBF0DC", fg: "#9A6B00" },
-  "Bloqué":     { bg: "#FBE7E4", fg: "#B23A24" },
-  "Terminé":    { bg: "#E7EEFB", fg: "#2452A8" },
+  "À faire":    { bg: "#EEF0F4", fg: "#3D4351", col: "#F1F2F5" },
+  "En cours":   { bg: "#E7EEFB", fg: "#2452A8", col: "#EAF1FC" },
+  "En attente": { bg: "#FBF0DC", fg: "#9A6B00", col: "#FDF6E7" },
+  "Bloqué":     { bg: "#FBE7E4", fg: "#B23A24", col: "#FCEEEC" },
+  "Terminé":    { bg: "#E6F0EA", fg: "#0F6B4C", col: "#EAF4EE" },
 };
 const PRIORITE_COLOR = { Haute: "#B23A24", Moyenne: "#B2790E", Basse: "#3D7A5B" };
 
@@ -157,7 +157,7 @@ function renderKanban(items) {
         </div>`;
     }).join("");
     return `
-      <div class="kcol" data-statut="${statut}">
+      <div class="kcol" data-statut="${statut}" style="background:${st.col}">
         <div class="kcol-head">
           <span class="name" style="color:${st.fg}">${statut}</span>
           <span class="count" style="background:${st.bg};color:${st.fg}">${colItems.length}</span>
