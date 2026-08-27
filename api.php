@@ -47,9 +47,10 @@ switch ($method) {
             echo json_encode(['ok' => false, 'error' => 'Le sujet est obligatoire.']);
             break;
         }
+        $d['termine_le'] = $d['statut'] === 'Terminé' ? date('Y-m-d') : null;
         $stmt = $pdo->prepare('INSERT INTO taches
-            (sujet, categorie, projet, responsable, priorite, statut, date_debut, echeance, derniere_maj, prochaine_action, commentaires)
-            VALUES (:sujet,:categorie,:projet,:responsable,:priorite,:statut,:date_debut,:echeance,CURDATE(),:prochaine_action,:commentaires)');
+            (sujet, categorie, projet, responsable, priorite, statut, date_debut, echeance, derniere_maj, termine_le, prochaine_action, commentaires)
+            VALUES (:sujet,:categorie,:projet,:responsable,:priorite,:statut,:date_debut,:echeance,CURDATE(),:termine_le,:prochaine_action,:commentaires)');
         $stmt->execute($d);
         $id = $pdo->lastInsertId();
         $row = $pdo->prepare('SELECT * FROM taches WHERE id = ?');
@@ -72,10 +73,23 @@ switch ($method) {
             break;
         }
         $d['id'] = $id;
+
+        $prev = $pdo->prepare('SELECT statut, termine_le FROM taches WHERE id = ?');
+        $prev->execute([$id]);
+        $prevRow = $prev->fetch();
+
+        if ($d['statut'] === 'Terminé') {
+            $d['termine_le'] = ($prevRow && $prevRow['statut'] === 'Terminé' && $prevRow['termine_le'])
+                ? $prevRow['termine_le']
+                : date('Y-m-d');
+        } else {
+            $d['termine_le'] = null;
+        }
+
         $stmt = $pdo->prepare('UPDATE taches SET
             sujet=:sujet, categorie=:categorie, projet=:projet, responsable=:responsable,
             priorite=:priorite, statut=:statut, date_debut=:date_debut, echeance=:echeance,
-            derniere_maj=CURDATE(), prochaine_action=:prochaine_action, commentaires=:commentaires
+            derniere_maj=CURDATE(), termine_le=:termine_le, prochaine_action=:prochaine_action, commentaires=:commentaires
             WHERE id=:id');
         $stmt->execute($d);
         $row = $pdo->prepare('SELECT * FROM taches WHERE id = ?');

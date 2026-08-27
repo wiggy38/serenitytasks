@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS taches (
   date_debut DATE DEFAULT NULL,
   echeance DATE DEFAULT NULL,
   derniere_maj DATE DEFAULT NULL,
+  termine_le DATE DEFAULT NULL,
   prochaine_action VARCHAR(255) DEFAULT '',
   commentaires TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

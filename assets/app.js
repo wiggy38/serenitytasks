@@ -34,10 +34,14 @@ function currentMondayISO() { return mondayOfISO(todayISO()); }
 
 // Semaine Kanban "effective" : une tâche non terminée dont la semaine est
 // passée apparaît dans la semaine en cours (affichage uniquement, date_debut
-// n'est jamais modifiée).
+// n'est jamais modifiée). Une tâche terminée reste ancrée à la semaine où
+// elle a été déplacée dans "Terminé" (termine_le), pas à sa date de début.
 function effectiveWeek(t) {
+  if (t.statut === "Terminé") {
+    return mondayOfISO(t.termine_le || t.date_debut || todayISO());
+  }
   const base = mondayOfISO(t.date_debut || todayISO());
-  if (t.statut !== "Terminé" && base < currentMondayISO()) {
+  if (base < currentMondayISO()) {
     return currentMondayISO();
   }
   return base;
@@ -75,9 +79,14 @@ function joursRestants(echeance) {
   const t = new Date(todayISO() + "T00:00:00");
   return Math.round((d - t) / 86400000);
 }
-function alerteInfo(statut, echeance) {
+function alerteInfo(statut, echeance, termineLe) {
+  if (statut === "Terminé") {
+    const dateFait = termineLe || echeance;
+    return dateFait
+      ? { html: `<span class="alerte-fait">Fait le ${dateFait}</span>` }
+      : { html: '<span class="alerte-vide">—</span>' };
+  }
   if (!echeance) return { html: '<span class="alerte-vide">—</span>' };
-  if (statut === "Terminé") return { html: `<span class="alerte-fait">Fait le ${echeance}</span>` };
   const jr = joursRestants(echeance);
   if (jr < 0) return { html: `<span class="alerte-retard">⚠ ${Math.abs(jr)} j de retard</span>`, retard: true };
   if (jr <= 2) return { html: `<span class="alerte-urgent">⏱ ${jr}j restants</span>` };
@@ -158,7 +167,7 @@ function renderListe(items) {
   const rows = items.map((t) => {
     const st = STATUT_STYLE[t.statut];
     const pc = PRIORITE_COLOR[t.priorite];
-    const a = alerteInfo(t.statut, t.echeance);
+    const a = alerteInfo(t.statut, t.echeance, t.termine_le);
     return `
       <tr>
         <td class="sujet-cell">
@@ -198,7 +207,7 @@ function renderKanban(items) {
     const colItems = items.filter((t) => t.statut === statut);
     const cards = colItems.map((t) => {
       const pc = PRIORITE_COLOR[t.priorite];
-      const a = alerteInfo(t.statut, t.echeance);
+      const a = alerteInfo(t.statut, t.echeance, t.termine_le);
       return `
         <div class="kcard" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
           <div class="titre">${escapeHtml(t.sujet)}</div>
