@@ -79,6 +79,10 @@ function joursRestants(echeance) {
   const t = new Date(todayISO() + "T00:00:00");
   return Math.round((d - t) / 86400000);
 }
+function estEnRetard(t) {
+  return (t.statut === "À faire" || t.statut === "En cours")
+    && t.echeance && joursRestants(t.echeance) < 0;
+}
 function alerteInfo(statut, echeance, termineLe) {
   if (statut === "Terminé") {
     const dateFait = termineLe || echeance;
@@ -168,7 +172,7 @@ function renderListe(items) {
     const st = STATUT_STYLE[t.statut];
     const pc = PRIORITE_COLOR[t.priorite];
     const a = alerteInfo(t.statut, t.echeance, t.termine_le);
-    const rowClass = t.statut === "Terminé" ? ' class="row-termine"' : "";
+    const rowClass = t.statut === "Terminé" ? ' class="row-termine"' : estEnRetard(t) ? ' class="row-retard"' : "";
     return `
       <tr${rowClass}>
         <td class="sujet-cell">
@@ -209,7 +213,7 @@ function renderKanban(items) {
     const cards = colItems.map((t) => {
       const pc = PRIORITE_COLOR[t.priorite];
       const a = alerteInfo(t.statut, t.echeance, t.termine_le);
-      const cardClass = t.statut === "Terminé" ? "kcard kcard-termine" : "kcard";
+      const cardClass = t.statut === "Terminé" ? "kcard kcard-termine" : estEnRetard(t) ? "kcard kcard-retard" : "kcard";
       return `
         <div class="${cardClass}" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
           <div class="titre">${escapeHtml(t.sujet)}</div>
