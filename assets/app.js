@@ -353,14 +353,19 @@ function renderKanban(items) {
     }).join("");
     return `
       <div class="kcol" data-statut="${statut}" style="background:${st.col}">
-        <div class="kcol-head">
+        <div class="kcol-head" onclick="toggleKcol(this)">
           <span class="name" style="color:${st.fg}">${statut}</span>
           <span class="count" style="background:${st.bg};color:${st.fg}">${colItems.length}</span>
+          <span class="kcol-chevron" style="color:${st.fg}">▾</span>
         </div>
         <div class="kcol-body">${cards}</div>
       </div>`;
   }).join("");
   return `<div class="kanban">${cols}</div>`;
+}
+
+function toggleKcol(headEl) {
+  headEl.closest(".kcol").classList.toggle("collapsed");
 }
 
 // ---- Rendu roadmap ----
