@@ -36,6 +36,7 @@ header('Pragma: no-cache');
       <button id="view-kanban" class="toggle active">Kanban</button>
       <button id="view-roadmap" class="toggle">Roadmap</button>
       <button id="view-liste" class="toggle">Liste</button>
+      <button id="view-dashboard" class="toggle">Dashboard</button>
     </div>
   </section>
 

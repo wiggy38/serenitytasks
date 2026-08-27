@@ -9,6 +9,10 @@ const STATUT_STYLE = {
   "Terminé":    { bg: "#173D2C", fg: "#7CD9A8", col: "#12261C" },
 };
 const PRIORITE_COLOR = { Haute: "#FF6B52", Moyenne: "#F0C766", Basse: "#6FCB9F" };
+const CATEGORIE_COLOR = {
+  Projet: "#8FB8F0", Incident: "#FF8A75", Demande: "#F0C766",
+  Support: "#7CD9A8", Réunion: "#C79BF0", Autre: "#9BA3AF",
+};
 
 const MOIS_FR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
@@ -161,6 +165,131 @@ function renderStats() {
       <div class="val" style="color:${fg}">${val}</div>
       <div class="lbl" style="color:${fg};opacity:.75">${label}</div>
     </div>`).join("");
+}
+
+// ---- Rendu dashboard KPIs ----
+function barRow(label, count, total, color) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return `
+    <div class="bar-row">
+      <div class="bar-label">${escapeHtml(label)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="bar-value">${count}</div>
+    </div>`;
+}
+
+function renderDashboard(items) {
+  if (items.length === 0) {
+    return `<div class="empty-state">Aucune donnée à afficher pour ce filtre.</div>`;
+  }
+  const total = items.length;
+  const actives = items.filter(t => t.statut !== "Terminé");
+
+  // Répartitions
+  const parStatut = STATUTS.map(s => [s, items.filter(t => t.statut === s).length, STATUT_STYLE[s].fg]);
+  const parPriorite = PRIORITES.map(p => [p, items.filter(t => t.priorite === p).length, PRIORITE_COLOR[p]]);
+  const categories = [...new Set(items.map(t => t.categorie))];
+  const parCategorie = categories.map(c => [c, items.filter(t => t.categorie === c).length, CATEGORIE_COLOR[c] || "#9BA3AF"])
+    .sort((a, b) => b[1] - a[1]);
+
+  // Charge active par responsable
+  const respCounts = {};
+  actives.forEach(t => {
+    const r = t.responsable || "Non assigné";
+    respCounts[r] = (respCounts[r] || 0) + 1;
+  });
+  const parResponsable = Object.entries(respCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const maxResp = Math.max(1, ...parResponsable.map(([, n]) => n));
+
+  // Débit hebdomadaire (tâches terminées, 6 dernières semaines)
+  const weeks = [];
+  for (let i = 5; i >= 0; i--) {
+    const mon = mondayOfISO(addDays(currentMondayISO(), -7 * i));
+    weeks.push(mon);
+  }
+  const weekCounts = weeks.map(w => items.filter(t => t.statut === "Terminé" && t.termine_le && mondayOfISO(t.termine_le) === w).length);
+  const maxWeek = Math.max(1, ...weekCounts);
+
+  // Délai moyen de traitement
+  const cycles = items
+    .filter(t => t.statut === "Terminé" && t.date_debut && t.termine_le)
+    .map(t => diffDays(t.date_debut, t.termine_le))
+    .filter(n => n >= 0);
+  const avgCycle = cycles.length ? Math.round(cycles.reduce((a, b) => a + b, 0) / cycles.length) : null;
+
+  // Tâches bloquées les plus anciennes
+  const bloquees = items.filter(t => t.statut === "Bloqué")
+    .slice()
+    .sort((a, b) => (a.derniere_maj || "").localeCompare(b.derniere_maj || ""))
+    .slice(0, 5);
+
+  // Taux de retard
+  const enRetard = actives.filter(t => t.echeance && joursRestants(t.echeance) < 0).length;
+  const tauxRetard = actives.length ? Math.round((enRetard / actives.length) * 100) : 0;
+
+  return `
+    <div class="dashboard-grid">
+
+      <div class="dash-card">
+        <h3>Répartition par statut</h3>
+        ${parStatut.map(([label, n, color]) => barRow(label, n, total, color)).join("")}
+      </div>
+
+      <div class="dash-card">
+        <h3>Répartition par priorité</h3>
+        ${parPriorite.map(([label, n, color]) => barRow(label, n, total, color)).join("")}
+      </div>
+
+      <div class="dash-card">
+        <h3>Répartition par catégorie</h3>
+        ${parCategorie.map(([label, n, color]) => barRow(label, n, total, color)).join("")}
+      </div>
+
+      <div class="dash-card">
+        <h3>Charge active par responsable</h3>
+        ${parResponsable.length
+          ? parResponsable.map(([label, n]) => barRow(label, n, maxResp, "#FF7900")).join("")
+          : `<div class="dash-empty">Aucune tâche active assignée.</div>`}
+      </div>
+
+      <div class="dash-card">
+        <h3>Débit hebdomadaire — tâches terminées</h3>
+        <div class="week-chart">
+          ${weeks.map((w, i) => `
+            <div class="week-bar-col">
+              <div class="week-bar-track"><div class="week-bar-fill" style="height:${Math.round((weekCounts[i] / maxWeek) * 100)}%"></div></div>
+              <div class="week-bar-value">${weekCounts[i]}</div>
+              <div class="week-bar-label">${weekLabel(w).replace("Semaine du ", "").split(" au ")[0]}</div>
+            </div>`).join("")}
+        </div>
+      </div>
+
+      <div class="dash-card dash-card-metric">
+        <h3>Délai moyen de traitement</h3>
+        <div class="dash-big">${avgCycle !== null ? `${avgCycle}<span>j</span>` : "—"}</div>
+        <div class="dash-sub">${cycles.length} tâche${cycles.length > 1 ? "s" : ""} terminée${cycles.length > 1 ? "s" : ""} avec dates</div>
+      </div>
+
+      <div class="dash-card dash-card-metric">
+        <h3>Taux de retard</h3>
+        <div class="dash-big">${tauxRetard}<span>%</span></div>
+        <div class="dash-sub">${enRetard} sur ${actives.length} tâche${actives.length > 1 ? "s" : ""} active${actives.length > 1 ? "s" : ""}</div>
+      </div>
+
+      <div class="dash-card">
+        <h3>Tâches bloquées les plus anciennes</h3>
+        ${bloquees.length ? `<div class="dash-list">
+          ${bloquees.map(t => {
+            const jours = t.derniere_maj ? diffDays(t.derniere_maj, todayISO()) : null;
+            return `<div class="dash-list-item">
+              <div class="titre">${escapeHtml(t.sujet)}</div>
+              <div class="meta">${escapeHtml(t.responsable || "Non assigné")} · ${jours !== null ? `${jours}j sans mise à jour` : "date inconnue"}</div>
+            </div>`;
+          }).join("")}
+        </div>` : `<div class="dash-empty">Aucune tâche bloquée.</div>`}
+      </div>
+
+    </div>`;
 }
 
 // ---- Rendu liste ----
@@ -402,7 +531,7 @@ function render() {
     if (view === "kanban") $("#week-label").textContent = weekLabel(currentWeek);
   }
   const items = filteredTaches();
-  $("#content").innerHTML = view === "liste" ? renderListe(items) : view === "roadmap" ? renderRoadmap(items) : renderKanban(items);
+  $("#content").innerHTML = view === "liste" ? renderListe(items) : view === "roadmap" ? renderRoadmap(items) : view === "dashboard" ? renderDashboard(items) : renderKanban(items);
   attachDnD();
 
   // datalist projets
@@ -512,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#f-statut").addEventListener("change", render);
   $("#f-priorite").addEventListener("change", render);
 
-  const viewBtns = { liste: $("#view-liste"), kanban: $("#view-kanban"), roadmap: $("#view-roadmap") };
+  const viewBtns = { liste: $("#view-liste"), kanban: $("#view-kanban"), roadmap: $("#view-roadmap"), dashboard: $("#view-dashboard") };
   function setView(v) {
     view = v;
     Object.entries(viewBtns).forEach(([k, btn]) => btn.classList.toggle("active", k === v));
@@ -521,6 +650,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#view-liste").addEventListener("click", () => setView("liste"));
   $("#view-kanban").addEventListener("click", () => setView("kanban"));
   $("#view-roadmap").addEventListener("click", () => setView("roadmap"));
+  $("#view-dashboard").addEventListener("click", () => setView("dashboard"));
 
   loadTaches();
 });
