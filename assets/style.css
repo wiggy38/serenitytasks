@@ -77,6 +77,7 @@ table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 thead tr { background: var(--or-surface-2); text-align: left; }
 th { padding: 11px 14px; font-weight: 700; color: var(--or-muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--or-border); }
 td { padding: 12px 14px; border-bottom: 1px solid var(--or-border); vertical-align: top; }
+tr.row-termine { background: #173D2C; }
 .sujet-cell .pill-priorite { display: inline-block; margin-bottom: 4px; }
 .sujet-cell .titre { font-weight: 600; }
 .sujet-cell .projet { color: var(--or-muted); font-size: 12px; margin-top: 2px; }
@@ -95,6 +96,7 @@ td { padding: 12px 14px; border-bottom: 1px solid var(--or-border); vertical-ali
 .kcol-head .count { border-radius: 20px; font-size: 11.5px; font-weight: 700; padding: 2px 8px; }
 .kcol-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
 .kcard { background: var(--or-surface); border-radius: var(--or-radius); padding: 10px; border: 1px solid var(--or-border); cursor: grab; transition: box-shadow .15s, opacity .15s; }
+.kcard-termine { background: #173D2C; border-color: #1F5A3F; }
 .kcard .titre { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 .kcard .resp { font-size: 11.5px; color: var(--or-muted); }
 .kcard-projet { font-size: 11px; color: var(--or-muted); font-weight: 600; margin: 2px 0 6px; }

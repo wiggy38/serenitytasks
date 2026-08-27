@@ -168,8 +168,9 @@ function renderListe(items) {
     const st = STATUT_STYLE[t.statut];
     const pc = PRIORITE_COLOR[t.priorite];
     const a = alerteInfo(t.statut, t.echeance, t.termine_le);
+    const rowClass = t.statut === "Terminé" ? ' class="row-termine"' : "";
     return `
-      <tr>
+      <tr${rowClass}>
         <td class="sujet-cell">
           <span class="pill-priorite" style="background:${pc}1A;color:${pc}">${t.priorite}</span>
           <div class="titre">${escapeHtml(t.sujet)}</div>
@@ -208,8 +209,9 @@ function renderKanban(items) {
     const cards = colItems.map((t) => {
       const pc = PRIORITE_COLOR[t.priorite];
       const a = alerteInfo(t.statut, t.echeance, t.termine_le);
+      const cardClass = t.statut === "Terminé" ? "kcard kcard-termine" : "kcard";
       return `
-        <div class="kcard" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
+        <div class="${cardClass}" draggable="true" data-id="${t.id}" style="border-left:3px solid ${pc}" onclick="openEdit(${t.id})">
           <div class="titre">${escapeHtml(t.sujet)}</div>
           <div class="resp">${escapeHtml(t.responsable) || "Non assigné"}</div>
           ${t.projet ? `<div class="kcard-projet">${escapeHtml(t.projet)}</div>` : ""}
